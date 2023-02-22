@@ -10,8 +10,7 @@ import shutil
 import commands
 
 #Authors:
-#Anamitra Datta
-#Minting Chen
+#Dylan Logan
 
 #Master Publisher code for multiple sensors photo triggering
 #Continously and periodically polls all devices in the network to knwo about their sensor values
