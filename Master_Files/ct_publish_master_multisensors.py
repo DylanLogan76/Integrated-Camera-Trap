@@ -13,37 +13,67 @@ import commands
 #Dylan Logan
 
 #Master Publisher code for multiple sensors photo triggering
-#Continously and periodically polls all devices in the network to knwo about their sensor values
-#If a certain percentage of sensors are true in the network, then motion is detected
-#Then, start the photo session process by sending a message to all slave devices to take a photo
+#Periodically polls the sensors in the camera array and takes a picture if a set ratio is met
+setup = true 
+main = false
 
-print("Started master multisensor photo sync program")
+while setup
+	print("Started master multisensor photo sync program")
 
-MQTT_SERVER = "localhost" #master Pi IP address
-MQTT_PATH = "test" #topic name for MQTT
-path = '/home/pi/cameraTrapPhotos/'
-pir = MotionSensor(4) #use motion sensor
-camera = PiCamera() #use camera
-access_rights = 0o777
+	MQTT_SERVER = "localhost" #master Pi IP address
+	MQTT_PATH = "test" #topic name for MQTT
+	path = '/home/pi/cameraTrapPhotos/'
+	pir = MotionSensor(4) #use motion sensor
+	camera = PiCamera() #use camera
+	access_rights = 0o777
 
-#create a directory if one does not exist for the camera trap photos
-if(os.path.isdir(path)==False):
-	os.mkdir(path,access_rights)
-#else, remove all photos and photo sets currently in the directory
-else:
-	for fname in os.listdir(path):
-		shutil.rmtree(path+fname)
+	#create a directory if one does not exist for the camera trap photos
+	if(os.path.isdir(path)==False):
+		os.mkdir(path,access_rights)
+	#else, remove all photos and photo sets currently in the directory
+	else:
+		for fname in os.listdir(path):
+			shutil.rmtree(path+fname)
 
-IPAddr = commands.getoutput("hostname -I") #get Pi's own IP address
+	IPAddr = commands.getoutput("hostname -I") #get Pi's own IP address
+	
+	#set socket for listening to slave pis
+	s = socket.socket()
+	s.settimeout(30) #set a time for the socket to be open for. This is purposefully long in lue of a delay
+	s.bind(('',12345)) #bind the socket to a unused undesignated port
+	
+	sensors_connected = [] #list of all the slaves that connect to the master
+	message = "Setup"
+	sensors_connected.append([str(IPAddr)])
+	publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message see which slave sensors are looking to connect
+	s.listen(10) #set socket to take a backlog of 10. increase number if there are more slaves to be connected
+	print("Socket is listening for setup")
+	
+	while True:
+		try:
+			c,addr = s.accept() #accept connections from slave pis
+			print('Got connection from', addr)
+			receivedIP = str(c.recv(1024))
+			sensors_connected.append([receivedIP])
+			c.close()
 
-threshold = 0.67 #threshold for taking photo, percent of sensors that need to be true to take a photo, configurable
-photoNum = 1 #current set/photo number
-delay = 30 #amount of time in seconds to rest after a photo session (should be greater than 30 seconds)
+		except socket.timeout:
+			break
+	
+	total_sensors = len(sensors_connested)
+	if (total_sensors > 3):
+		thresh_pass = floor(2/3*total_sensors) #this creates the threshold to take a picture as two thirds of the total sensors rounding down
+		thresh_fail = (ceil(1/3*total_sensors)) + 1 #this sets a fail flag
+	threshold = 0.67 #threshold for taking photo, percent of sensors that need to be true to take a photo, configurable
+	photoNum = 1 #current set/photo number
+	delay = 30 #amount of time in seconds to rest after a photo session (should be greater than 30 seconds)
 
-#set socket for listening to slave pis
-s = socket.socket()
-s.settimeout(10) #set timeout for few seconds, enough to read sensor data from all slave Pis
-s.bind(('',12345)) #bind the socket to a unused undesignated port
+
+
+	
+	main = true
+	setup = false
+	break
 
 #run continously until terminated by user
 while True:
