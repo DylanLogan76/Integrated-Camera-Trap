@@ -63,15 +63,14 @@ while setup
 	total_sensors = len(sensors_connested)
 	if (total_sensors > 3):
 		thresh_pass = floor(2/3*total_sensors) #this creates the threshold to take a picture as two thirds of the total sensors rounding down
-		thresh_fail = (ceil(1/3*total_sensors)) + 1 #this sets a fail flag
-	threshold = 0.67 #threshold for taking photo, percent of sensors that need to be true to take a photo, configurable
-	photoNum = 1 #current set/photo number
-	delay = 30 #amount of time in seconds to rest after a photo session (should be greater than 30 seconds)
-
-
-
-	
-	main = true
+		thresh_fail = (ceil(1/3*total_sensors)) + 1 #this sets a fail flag. if this many sensors arent seeing motion we wont take a picture
+		main = true
+	elif (total_sensors < 3): #if there is only one slave connected then the script is not run
+		print("you dont have enough connected sensors")
+	else: #this is the minimum number of sensors to create a usable model therefore it is a special case where all the sensors must detect heat
+		thresh_pass = 3
+		thresh_fail = 1
+		main = true
 	setup = false
 	break
 
