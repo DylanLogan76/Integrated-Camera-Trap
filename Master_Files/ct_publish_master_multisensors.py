@@ -14,8 +14,8 @@ import commands
 
 #Master Publisher code for multiple sensors photo triggering
 #Periodically polls the sensors in the camera array and takes a picture if a set ratio is met
-setup = true 
-main = false
+setup = True 
+main = False
 
 while setup
 	print("Started master multisensor photo sync program")
@@ -64,14 +64,14 @@ while setup
 	if (total_sensors > 3):
 		thresh_pass = floor(2/3*total_sensors) #this creates the threshold to take a picture as two thirds of the total sensors rounding down
 		thresh_fail = (ceil(1/3*total_sensors)) + 1 #this sets a fail flag. if this many sensors arent seeing motion we wont take a picture
-		main = true
+		main = True
 	elif (total_sensors < 3): #if there is only one slave connected then the script is not run
 		print("you dont have enough connected sensors")
 	else: #this is the minimum number of sensors to create a usable model therefore it is a special case where all the sensors must detect heat
 		thresh_pass = 3
 		thresh_fail = 1
-		main = true
-	setup = false #changes the setup variable to false so it only runs once
+		main = True
+	setup = False #changes the setup variable to false so it only runs once
 	delay = 30 #THIS MUST BE SET TO REAL VALUE this is the delay between which we will poll the sensors. 
 	            #it was chosen based on approximate diameter of senor array (D) animal speed (V)
 	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
@@ -98,7 +98,7 @@ while main:
 	print("Socket is listening")
 
     #get data from slave pis by listening to socket and parse it and add it to sensor list
-	while True:
+	for i in range(total_sensors):
 		try:
 			c,addr = s.accept() #accept connections from slave pis
 			print('Got connection from', addr)
@@ -110,10 +110,10 @@ while main:
 				fail_flag +=1
 			c.close()
 			
-			if pass_flag == thresh_pass:
+			if pass_flag >= thresh_pass:
 				take_pic = True
 				break
-			elif fail_flag == thresh_fail:
+			elif fail_flag >= thresh_fail:
 				break
 
 		except socket.timeout:
@@ -151,8 +151,39 @@ while main:
 		#go to next photo session
 		photoNum = photoNum + 1
 		
-		delay_flag = true #tracks that a picture has been taken and that the delay should begin
+		delay_flag = True #tracks that a picture has been taken and that the delay should begin
+		take_pic = False #stops the picture taking loop
 		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
+		s.settimeout(300) #this sets a new timer for 5 mins. This is the max time in the delay loop
+		delay_flag = 0
 	
-	while delay:
-		#Add delay logic
+	while delay: 
+		#this loop polls all the pis in order to check if their PIR signal has changed from high
+		#This logic is to stop pictures of the same animal to be taken over and over
+		#In order to track this we wait for the first time each sensor outputs a low signal and interpret that
+		#as the animal moving away. Once a threshold is met or a specified time has passed we exit the loop
+		try:
+			message = "Delay"
+			publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
+			
+			if(pir.motion_detected==False) and change == False: #enters this loop the first time the sensors reads false
+				change = True
+				delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
+
+			s.listen(total_sensors) #now listens for exactly the correct number of sensors 
+			print("Socket is listening")
+			for i in range(total_sensors)
+				c,addr = s.accept() #accept connections from slave pis
+				receivedInfo = str(c.recv(1024))
+			
+				if receivedInfo == "True":
+					delay_flag += 1
+				c.close()
+			
+				if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
+					delay = False
+					break
+
+		except socket.timeout:
+			delay = False
+			break
