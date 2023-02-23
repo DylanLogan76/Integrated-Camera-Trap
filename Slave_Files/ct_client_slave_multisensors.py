@@ -48,18 +48,27 @@ def on_message(client, userdata, msg):
 	wordlist = (msg.payload).split()
 
 	#send info about IP address and sensor reading
-	if(wordlist[0]=="Info"): #send sensor status to main pi for consensus
+	
+	if(wordlist[0]=="Setup"): #send sensor IP to main pi for setup 
 		IPAddr = commands.getoutput("hostname -I") #ip addres of slave pi
 
         #set up socket connection with master pi to send sensor status
 		s = socket.socket()
 		port = 12345 #connect to master multisensor port
 		s.connect((MQTT_SERVER,port))
-
+		
+		s.sendall(str(IPAddr))
+		s.close
+	
+	if(wordlist[0]=="Info"): #send sensor status to main pi for consensus
+		s = socket.socket()
+		port = 12345 #connect to master multisensor port
+		s.connect((MQTT_SERVER,port))
+		
 		if(pir.motion_detected==True):
-			s.sendall(str(IPAddr) + "True")
+			s.sendall("True")
 		else:
-			s.sendall(str(IPAddr) + "False")
+			s.sendall("False")
 		s.close()
 
 	if(wordlist[0]=="Take"): #take photo and send it to main pi
