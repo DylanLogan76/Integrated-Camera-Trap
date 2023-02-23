@@ -72,12 +72,16 @@ while setup
 		thresh_fail = 1
 		main = true
 	setup = false #changes the setup variable to false so it only runs once
+	delay = 30 #THIS MUST BE SET TO REAL VALUE this is the delay between which we will poll the sensors. 
+	            #it was chosen based on approximate diameter of senor array (D) animal speed (V)
+	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
 	break #ends the loop
 
 #run continously until terminated by user
 while main:
-	sensorlist = [] #list of all devices by their ip addresses and their sensor readings
 	print("Resting...")
+	pass_flag = 0 #resets flags every loop
+	fail_flag = 0
 	sleep(delay)
 	print("Starting")
 	message = "Info"
@@ -85,12 +89,12 @@ while main:
 
     #put sensor state of master pi in sensor list
 	if(pir.motion_detected==True):
-		sensorlist.append([str(IPAddr).rstrip(),str(True)])
+		pass_flag +=  1 #increments the pass count if motion is seen on master
 	else:
-		sensorlist.append([str(IPAddr).rstrip(),str(False)])
+		fail_flag += 1 #increments the fail count if motion is not seen on master
 
     #listen for incoming connections
-	s.listen(5)
+	s.listen(total_sensors) #now listens for exactly the correct number of sensors 
 	print("Socket is listening")
 
     #get data from slave pis by listening to socket and parse it and add it to sensor list
@@ -99,33 +103,28 @@ while main:
 			c,addr = s.accept() #accept connections from slave pis
 			print('Got connection from', addr)
 			receivedInfo = str(c.recv(1024))
-
-            #parse data and add it to the sensor list
-			splitInfo = receivedInfo.split()
-			receivedIP = splitInfo[0]
-			receivedSensor = splitInfo[1]
-			sensorlist.append([receivedIP,receivedSensor])
+			
+			if receivedInfo == "True":
+				pass_flag += 1
+			else:
+				fail_flag +=1
 			c.close()
+			
+			if pass_flag == thresh_pass:
+				take_pic = True
+				break
+			elif fail_flag == thresh_fail:
+				break
 
 		except socket.timeout:
 			break
 
-	#list of all devices and their sensor readings
-	for x in sensorlist:
-		print(x)
-
-    #calculate percentage of sensors that show true
-	numSensors = float(0)
-	numTrue = float(0)
-	for i, element in enumerate(sensorlist):
-		numSensors = numSensors + 1
-		if element[1] == "True":
-			numTrue = numTrue + 1
-	ratio = numTrue/numSensors
-	print("ratio: " + str(ratio))
+	#list of all devices and their sensor readings  CAN ADD BACK IN FOR TESTING OR IF INTERESTED 
+	#for x in sensorlist:
+		#print(x)
 
     #if ratio is above the threshold, start a photo session
-	if(ratio>threshold):
+	if(take_pic):
 		#Send MQTT message to slaves to take photo and start photo
 		message = "Take Synced Photo " + str(photoNum)
 		publish.single(MQTT_PATH,message,hostname=MQTT_SERVER)
@@ -151,3 +150,9 @@ while main:
 		print("Camera 1 photo number "+ str(photoNum) + " taken")
 		#go to next photo session
 		photoNum = photoNum + 1
+		
+		delay_flag = true #tracks that a picture has been taken and that the delay should begin
+		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
+	
+	while delay:
+		#Add delay logic
