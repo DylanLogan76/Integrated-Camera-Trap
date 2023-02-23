@@ -26,6 +26,7 @@ path = '/home/pi/cameraTrapPhotos/' #directory to store photos on
 cameraNum = 3 #device number, needs to be different for each pi
 access_rights = 0o777 #permissions for directory
 
+change = False
 #create a directory if one does not exist for the camera trap photos
 if(os.path.isdir(path)==False):
 	os.mkdir(path,access_rights)
@@ -70,6 +71,18 @@ def on_message(client, userdata, msg):
 		else:
 			s.sendall("False")
 		s.close()
+		
+	if(wordlist[0]=="Delay"): #Checks to see if the sensor is low for the first time since pic is taken
+		s = socket.socket()
+		port = 12345 #connect to master multisensor port
+		s.connect((MQTT_SERVER,port))
+		
+		if(pir.motion_detected==False) and change==False:
+			change = True
+			s.sendall("True")
+		else:
+			s.sendall("False")
+		s.close()
 
 	if(wordlist[0]=="Take"): #take photo and send it to main pi
 		photoNum = int(wordlist[-1])
@@ -110,6 +123,7 @@ def on_message(client, userdata, msg):
 		file.close()
 		ftp.quit()
         	print("closed FTP connection")
+		change = False #resets the change flag for the delay loop
 
 # Create an MQTT client and attach our routines to it.
 client = mqtt.Client()
