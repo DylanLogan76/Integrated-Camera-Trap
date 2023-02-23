@@ -183,6 +183,7 @@ while main:
 				if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
 					delay = False
 					break
+			sleep(10) #only checks the cameras every 10 seconds
 
 		except socket.timeout:
 			delay = False
