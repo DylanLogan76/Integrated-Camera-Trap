@@ -181,10 +181,12 @@ while main:
 				c.close()
 			
 				if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
+					s.settimeout(10)
 					delay = False
 					break
 			sleep(10) #only checks the cameras every 10 seconds
 
 		except socket.timeout:
+			s.settimeout(10)
 			delay = False
 			break
