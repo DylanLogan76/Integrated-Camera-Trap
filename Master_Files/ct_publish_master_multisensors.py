@@ -71,11 +71,11 @@ while setup
 		thresh_pass = 3
 		thresh_fail = 1
 		main = true
-	setup = false
-	break
+	setup = false #changes the setup variable to false so it only runs once
+	break #ends the loop
 
 #run continously until terminated by user
-while True:
+while main:
 	sensorlist = [] #list of all devices by their ip addresses and their sensor readings
 	print("Resting...")
 	sleep(delay)
