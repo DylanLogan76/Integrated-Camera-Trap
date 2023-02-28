@@ -16,6 +16,8 @@ import commands
 #Periodically polls the sensors in the camera array and takes a picture if a set ratio is met
 setup = True 
 main = False
+take_pic = False
+delay = False
 
 while setup
 	print("Started master multisensor photo sync program")
@@ -72,7 +74,8 @@ while setup
 		thresh_fail = 1
 		main = True
 	setup = False #changes the setup variable to false so it only runs once
-	delay = 30 #THIS MUST BE SET TO REAL VALUE this is the delay between which we will poll the sensors. 
+	mian  True #makes it so the main runs
+	wait_time = 30 #THIS MUST BE SET TO REAL VALUE this is the delay between which we will poll the sensors. 
 	            #it was chosen based on approximate diameter of senor array (D) animal speed (V)
 	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
 	break #ends the loop
@@ -82,7 +85,7 @@ while main:
 	print("Resting...")
 	pass_flag = 0 #resets flags every loop
 	fail_flag = 0
-	sleep(delay)
+	sleep(wait_time)
 	print("Starting")
 	message = "Info"
 	publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
@@ -151,7 +154,7 @@ while main:
 		#go to next photo session
 		photoNum = photoNum + 1
 		
-		delay_flag = True #tracks that a picture has been taken and that the delay should begin
+		delay = True #tracks that a picture has been taken and that the delay should begin
 		take_pic = False #stops the picture taking loop
 		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
 		s.settimeout(300) #this sets a new timer for 5 mins. This is the max time in the delay loop
