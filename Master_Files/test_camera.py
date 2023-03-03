@@ -10,3 +10,4 @@ camera.start_preview()
 #date = datetime.datetime.now().strftime("%m_%d_%Y_%H_%M_%S_%f")
 camera.capture(path)
 camera.stop_preview()
+#tfgbhjujnhjnj
