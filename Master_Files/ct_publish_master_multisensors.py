@@ -62,7 +62,7 @@ while setup
 		except socket.timeout:
 			break
 	
-	total_sensors = len(sensors_connested)
+	total_sensors = len(sensors_connected)
 	if (total_sensors > 3):
 		thresh_pass = floor(2/3*total_sensors) #this creates the threshold to take a picture as two thirds of the total sensors rounding down
 		thresh_fail = (ceil(1/3*total_sensors)) + 1 #this sets a fail flag. if this many sensors arent seeing motion we wont take a picture
@@ -74,7 +74,7 @@ while setup
 		thresh_fail = 1
 		main = True
 	setup = False #changes the setup variable to false so it only runs once
-	mian  True #makes it so the main runs
+	main = True #makes it so the main runs
 	wait_time = 30 #THIS MUST BE SET TO REAL VALUE this is the delay between which we will poll the sensors. 
 	            #it was chosen based on approximate diameter of senor array (D) animal speed (V)
 	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
