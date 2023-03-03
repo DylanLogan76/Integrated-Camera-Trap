@@ -21,7 +21,7 @@ delay = False
 
 while setup
 	print("Started master multisensor photo sync program")
-
+	photoNum = 1
 	MQTT_SERVER = "localhost" #master Pi IP address
 	MQTT_PATH = "test" #topic name for MQTT
 	path = '/home/pi/cameraTrapPhotos/'
@@ -115,9 +115,9 @@ while main:
 			
 			if pass_flag >= thresh_pass:
 				take_pic = True
-				break
-			elif fail_flag >= thresh_fail:
-				break
+#				break
+#			elif fail_flag >= thresh_fail:
+#				break
 
 		except socket.timeout:
 			break
