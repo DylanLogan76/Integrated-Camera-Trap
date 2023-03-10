@@ -23,7 +23,8 @@ MQTT_PATH = "test" #mqtt topic for CT program
 pir=MotionSensor(4) #use motion sensor
 camera = PiCamera() #use camera
 path = '/home/pi/cameraTrapPhotos/' #directory to store photos on
-cameraNum = 3 #device number, needs to be different for each pi
+IPAddr = commands.getoutput("hostname -I") #get Pi's own IP address
+cameraNum = IPAddr[-2:] #device number, sets itself equal to the last two numbers in the IP adress (change if over 100 cameras used)
 access_rights = 0o777 #permissions for directory
 
 change = False
@@ -51,7 +52,6 @@ def on_message(client, userdata, msg):
 	#send info about IP address and sensor reading
 	
 	if(wordlist[0]=="Setup"): #send sensor IP to main pi for setup 
-		IPAddr = commands.getoutput("hostname -I") #ip addres of slave pi
 
         #set up socket connection with master pi to send sensor status
 		s = socket.socket()
