@@ -17,7 +17,7 @@ from gpiozero import MotionSensor
 #If message "Info" is received from master pi, send data about the sensor to master Pi
 #if message "Take" is received from master pi, take a photo and ftp it to master pi
 
-MQTT_SERVER = "192.168.5.101" #IP adress of master pi
+MQTT_SERVER = "192.168.5.1" #IP adress of master pi
 MQTT_PATH = "test" #mqtt topic for CT program
 
 pir=MotionSensor(4) #use motion sensor
