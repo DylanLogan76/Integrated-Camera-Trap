@@ -159,6 +159,7 @@ while main:
 		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
 		s.settimeout(300) #this sets a new timer for 5 mins. This is the max time in the delay loop
 		delay_flag = 0
+		change = False
 	
 	while delay: 
 		#this loop polls all the pis in order to check if their PIR signal has changed from high
@@ -166,28 +167,29 @@ while main:
 		#In order to track this we wait for the first time each sensor outputs a low signal and interpret that
 		#as the animal moving away. Once a threshold is met or a specified time has passed we exit the loop
 		try:
-			message = "Delay"
-			publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
+			while True:
+				message = "Delay"
+				publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
 			
-			if(pir.motion_detected==False) and change == False: #enters this loop the first time the sensors reads false
-				change = True
-				delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
+				if(pir.motion_detected==False) and change == False: #enters this loop the first time the sensors reads false
+					change = True
+					delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
 
-			s.listen(total_sensors) #now listens for exactly the correct number of sensors 
-			print("Socket is listening")
-			for i in range(total_sensors)
-				c,addr = s.accept() #accept connections from slave pis
-				receivedInfo = str(c.recv(1024))
+				s.listen(total_sensors) #now listens for exactly the correct number of sensors 
+				print("Socket is listening")
+				for i in range(total_sensors)
+					c,addr = s.accept() #accept connections from slave pis
+					receivedInfo = str(c.recv(1024))
 			
-				if receivedInfo == "True":
-					delay_flag += 1
-				c.close()
+					if receivedInfo == "True":
+						delay_flag += 1
+					c.close()
 			
-				if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
-					s.settimeout(10)
-					delay = False
-					break
-			sleep(10) #only checks the cameras every 10 seconds
+					if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
+						s.settimeout(10)
+						delay = False
+						break
+				sleep(10) #only checks the cameras every 10 seconds
 
 		except socket.timeout:
 			s.settimeout(10)
