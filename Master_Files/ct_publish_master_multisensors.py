@@ -166,8 +166,7 @@ while main:
 		#This logic is to stop pictures of the same animal to be taken over and over
 		#In order to track this we wait for the first time each sensor outputs a low signal and interpret that
 		#as the animal moving away. Once a threshold is met or a specified time has passed we exit the loop
-		try:
-			while True:
+		for j in range(30):
 				message = "Delay"
 				publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
 			
@@ -189,9 +188,7 @@ while main:
 						s.settimeout(10)
 						delay = False
 						break
+				if delay_flag >= thresh_pass:
+					delay = False
+					break
 				sleep(10) #only checks the cameras every 10 seconds
-
-		except socket.timeout:
-			s.settimeout(10)
-			delay = False
-			break
