@@ -101,7 +101,7 @@ while main:
 	print("Socket is listening")
 
     #get data from slave pis by listening to socket and parse it and add it to sensor list
-	for i in range(total_sensors):
+	for i in range(1,total_sensors):
 		try:
 			c,addr = s.accept() #accept connections from slave pis
 			print('Got connection from', addr)
@@ -120,7 +120,8 @@ while main:
 #				break
 
 		except socket.timeout:
-			break
+			total_sensors -=1 #this means a sensor has died
+			break #break the loop so no pic is taken as a timeout means the animal is likely past
 
 	#list of all devices and their sensor readings  CAN ADD BACK IN FOR TESTING OR IF INTERESTED 
 	#for x in sensorlist:
@@ -157,9 +158,8 @@ while main:
 		delay = True #tracks that a picture has been taken and that the delay should begin
 		take_pic = False #stops the picture taking loop
 		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
-		s.settimeout(300) #this sets a new timer for 5 mins. This is the max time in the delay loop
 		delay_flag = 0
-		change = False
+#		change = False
 	
 	while delay: 
 		#this loop polls all the pis in order to check if their PIR signal has changed from high
@@ -167,27 +167,30 @@ while main:
 		#In order to track this we wait for the first time each sensor outputs a low signal and interpret that
 		#as the animal moving away. Once a threshold is met or a specified time has passed we exit the loop
 		for j in range(30):
+			delay_flag = 0
 				message = "Delay"
 				publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
 			
-				if(pir.motion_detected==False) and change == False: #enters this loop the first time the sensors reads false
-					change = True
+				if(pir.motion_detected==False): #enters this loop the first time the sensors reads false
 					delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
 
 				s.listen(total_sensors) #now listens for exactly the correct number of sensors 
 				print("Socket is listening")
-				for i in range(total_sensors)
-					c,addr = s.accept() #accept connections from slave pis
-					receivedInfo = str(c.recv(1024))
+				for i in range(1,total_sensors)
+					try:
+						c,addr = s.accept() #accept connections from slave pis
+						receivedInfo = str(c.recv(1024))
 			
-					if receivedInfo == "True":
-						delay_flag += 1
-					c.close()
+						if receivedInfo == "True":
+							delay_flag += 1
+						c.close()
 			
-					if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
-						s.settimeout(10)
-						delay = False
-						break
+						if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
+							s.settimeout(10)
+							delay = False
+							break
+					except socket.timeout:
+						
 				if delay_flag >= thresh_pass:
 					delay = False
 					break
