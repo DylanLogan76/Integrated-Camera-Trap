@@ -190,7 +190,9 @@ while main:
 							delay = False
 							break
 					except socket.timeout:
-						
+						delay = True 
+						total_sensors -=1
+						break
 				if delay_flag >= thresh_pass:
 					delay = False
 					break
