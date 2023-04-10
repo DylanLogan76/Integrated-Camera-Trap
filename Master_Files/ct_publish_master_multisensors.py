@@ -18,32 +18,37 @@ setup = True
 main = False
 take_pic = False
 delay = False
+initial_setup = True
+delay_flag = 0
 
-while setup
-	print("Started master multisensor photo sync program")
-	photoNum = 1
-	MQTT_SERVER = "localhost" #master Pi IP address
-	MQTT_PATH = "test" #topic name for MQTT
-	path = '/home/pi/cameraTrapPhotos/'
-	pir = MotionSensor(4) #use motion sensor
-	camera = PiCamera() #use camera
-	access_rights = 0o777
+while setup:
+	if initial_setup = True: #runs only one time
+		print("Started master multisensor photo sync program")
+		photoNum = 1
+		MQTT_SERVER = "localhost" #master Pi IP address
+		MQTT_PATH = "test" #topic name for MQTT
+		path = '/home/pi/cameraTrapPhotos/'
+		pir = MotionSensor(4) #use motion sensor
+		camera = PiCamera() #use camera
+		access_rights = 0o777
 
-	#create a directory if one does not exist for the camera trap photos
-	if(os.path.isdir(path)==False):
-		os.mkdir(path,access_rights)
-	#else, remove all photos and photo sets currently in the directory
-	else:
-		for fname in os.listdir(path):
-			shutil.rmtree(path+fname)
+		#create a directory if one does not exist for the camera trap photos
+		if(os.path.isdir(path)==False):
+			os.mkdir(path,access_rights)
+		#else, remove all photos and photo sets currently in the directory
+		else:
+			for fname in os.listdir(path):
+				shutil.rmtree(path+fname)
 
-	IPAddr = commands.getoutput("hostname -I") #get Pi's own IP address
+		IPAddr = commands.getoutput("hostname -I") #get Pi's own IP address
 	
-	#set socket for listening to slave pis
-	s = socket.socket()
+		#set socket for listening to slave pis
+		s = socket.socket()
+	
+		s.bind(('',12345)) #bind the socket to a unused undesignated port
+		initial_setup = False
+		
 	s.settimeout(30) #set a time for the socket to be open for. This is purposefully long in lue of a delay
-	s.bind(('',12345)) #bind the socket to a unused undesignated port
-	
 	sensors_connected = [] #list of all the slaves that connect to the master
 	message = "Setup"
 	sensors_connected.append([str(IPAddr)])
@@ -75,7 +80,7 @@ while setup
 		main = True
 	setup = False #changes the setup variable to false so it only runs once
 	main = True #makes it so the main runs
-	wait_time = 30 #THIS MUST BE SET TO REAL VALUE this is the delay between which we will poll the sensors. 
+	wait_time = 10 #Want to get many pics of the animal when it comes so wait time is just long enough for sensors to cool down on average
 	            #it was chosen based on approximate diameter of senor array (D) animal speed (V)
 	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
 	break #ends the loop
@@ -155,45 +160,50 @@ while main:
 		#go to next photo session
 		photoNum = photoNum + 1
 		
-		delay = True #tracks that a picture has been taken and that the delay should begin
+#		delay = True #tracks that a picture has been taken and that the delay should begin
 		take_pic = False #stops the picture taking loop
-		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
+		delay_flag +=1 
+#		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
+
+	if delay_flag = 10:
+		delay = True
 		delay_flag = 0
-#		change = False
-	
 	while delay: 
+		sleep(45) #Gives the sensors ample time to fully reset
+		
 		#this loop polls all the pis in order to check if their PIR signal has changed from high
 		#This logic is to stop pictures of the same animal to be taken over and over
 		#In order to track this we wait for the first time each sensor outputs a low signal and interpret that
 		#as the animal moving away. Once a threshold is met or a specified time has passed we exit the loop
-		for j in range(30):
-			delay_flag = 0
-				message = "Delay"
-				publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
+#		for j in range(30):
+#			delay_flag = 0
+#				message = "Delay"
+#				publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
+#			
+#				if(pir.motion_detected==False): #enters this loop the first time the sensors reads false
+#					delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
+#
+#				s.listen(total_sensors) #now listens for exactly the correct number of sensors 
+#				print("Socket is listening")
+#				for i in range(1,total_sensors)
+#					try:
+#						c,addr = s.accept() #accept connections from slave pis
+#						receivedInfo = str(c.recv(1024))
 			
-				if(pir.motion_detected==False): #enters this loop the first time the sensors reads false
-					delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
-
-				s.listen(total_sensors) #now listens for exactly the correct number of sensors 
-				print("Socket is listening")
-				for i in range(1,total_sensors)
-					try:
-						c,addr = s.accept() #accept connections from slave pis
-						receivedInfo = str(c.recv(1024))
-			
-						if receivedInfo == "True":
-							delay_flag += 1
-						c.close()
-			
-						if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
-							s.settimeout(10)
-							delay = False
-							break
-					except socket.timeout:
-						delay = True 
-						total_sensors -=1
-						break
-				if delay_flag >= thresh_pass:
-					delay = False
-					break
-				sleep(10) #only checks the cameras every 10 seconds
+#						if receivedInfo == "True":
+#							delay_flag += 1
+#						c.close()
+#			
+#						if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
+#							s.settimeout(10)
+#							delay = False
+#							break
+#					except socket.timeout:
+#						delay = True 
+#						total_sensors -=1
+#						break
+#				if delay_flag >= thresh_pass:
+#					delay = False
+#					break
+#				sleep(10) #only checks the cameras every 10 seconds
+#
