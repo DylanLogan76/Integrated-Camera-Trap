@@ -72,21 +72,21 @@ def on_message(client, userdata, msg):
 			s.sendall("False")
 		s.close()
 		
-	if(wordlist[0]=="Delay"): #Checks to see if the sensor is low for the first time since pic is taken
-		s = socket.socket()
-		port = 12345 #connect to master multisensor port
-		s.connect((MQTT_SERVER,port))
-		
-		if(pir.motion_detected==False) and change==False:
-			change = True
-			s.sendall("True")
-		else:
-			s.sendall("False")
-		s.close()
+#	if(wordlist[0]=="Delay"): #Checks to see if the sensor is low for the first time since pic is taken
+#		s = socket.socket()
+#		port = 12345 #connect to master multisensor port
+#		s.connect((MQTT_SERVER,port))
+#		
+#		if(pir.motion_detected==False) and change==False:
+#			change = True
+#			s.sendall("True")
+#		else:
+#			s.sendall("False")
+#		s.close()
 
 	if(wordlist[0]=="Take"): #take photo and send it to main pi
-		photoNum = int(wordlist[-1])
-		path = '/home/pi/cameraTrapPhotos/set' + str(photoNum) + '/'
+		photoNum = int(wordlist[-2])
+		path = '/home/pi/cameraTrapPhotos/' + date + '/'
 		access_rights = 0o777
 
         #make directory for current photo session
@@ -110,7 +110,7 @@ def on_message(client, userdata, msg):
 		print("Moving from Cam "+ str(cameraNum) + " to Master")
 		ftp = FTP(MQTT_SERVER)
 		ftp.login('pi','raspberry')
-		pathMaster = '/home/pi/cameraTrapPhotos/set' + str(photoNum) + '/'
+		pathMaster = '/home/pi/cameraTrapPhotos/' + date +'set' + str(photoNum) + '/'
 		ftp.cwd(pathMaster)
 
 		try:
