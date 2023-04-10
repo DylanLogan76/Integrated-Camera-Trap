@@ -20,6 +20,7 @@ take_pic = False
 delay = False
 initial_setup = True
 delay_flag = 0
+reinitialize = 0
 
 while setup:
 	if initial_setup = True: #runs only one time
@@ -168,8 +169,13 @@ while main:
 	if delay_flag = 10:
 		delay = True
 		delay_flag = 0
+		
+	reinitialize +=1 #increment every loop
+	if reinitialize = 8600  #about once a day will reinitialize the list of sensors 
+		setup = True
 	while delay: 
-		sleep(45) #Gives the sensors ample time to fully reset
+		sleep(45) #Gives the sensors ample time to fully reset if they have just taken 10 pics in a row
+			#Long times at high could cause them to continue to falsely read high for longer i.e. cool down
 		
 		#this loop polls all the pis in order to check if their PIR signal has changed from high
 		#This logic is to stop pictures of the same animal to be taken over and over
