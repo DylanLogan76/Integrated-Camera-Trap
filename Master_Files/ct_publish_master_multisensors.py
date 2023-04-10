@@ -8,7 +8,7 @@ import datetime
 import os
 import shutil
 import commands
-
+from time import strftime
 #Authors:
 #Dylan Logan
 
@@ -82,7 +82,6 @@ while setup:
 	setup = False #changes the setup variable to false so it only runs once
 	main = True #makes it so the main runs
 	wait_time = 10 #Want to get many pics of the animal when it comes so wait time is just long enough for sensors to cool down on average
-	            #it was chosen based on approximate diameter of senor array (D) animal speed (V)
 	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
 	break #ends the loop
 
@@ -136,9 +135,11 @@ while main:
     #if ratio is above the threshold, start a photo session
 	if(take_pic):
 		#Send MQTT message to slaves to take photo and start photo
-		message = "Take Synced Photo " + str(photoNum)
+		date = strftime("%d/%m/%y")
+		message = "Take Synced Photo " + str(photoNum) + date
+		
 		publish.single(MQTT_PATH,message,hostname=MQTT_SERVER)
-		ctpath = '/home/pi/cameraTrapPhotos/set' + str(photoNum) +  '/'
+		ctpath = '/home/pi/cameraTrapPhotos/' + date +'set' + str(photoNum) + '/'
 		access_rights = 0o777 #permissions for directory
         #make directory for current photo session
 		try:
@@ -173,6 +174,7 @@ while main:
 	reinitialize +=1 #increment every loop
 	if reinitialize = 8600  #about once a day will reinitialize the list of sensors 
 		setup = True
+		main = False
 	while delay: 
 		sleep(45) #Gives the sensors ample time to fully reset if they have just taken 10 pics in a row
 			#Long times at high could cause them to continue to falsely read high for longer i.e. cool down
