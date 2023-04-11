@@ -86,6 +86,7 @@ def on_message(client, userdata, msg):
 
 	if(wordlist[0]=="Take"): #take photo and send it to main pi
 		photoNum = int(wordlist[-2])
+		date = str(wordlist[-1])
 		path = '/home/pi/cameraTrapPhotos/' + date + '/'
 		access_rights = 0o777
 
