@@ -71,13 +71,11 @@ while setup:
 	total_sensors = len(sensors_connected)
 	if (total_sensors > 3):
 		thresh_pass = floor(2/3*total_sensors) #this creates the threshold to take a picture as two thirds of the total sensors rounding down
-		thresh_fail = (ceil(1/3*total_sensors)) + 1 #this sets a fail flag. if this many sensors arent seeing motion we wont take a picture
 		main = True
 	elif (total_sensors < 3): #if there is only one slave connected then the script is not run
 		print("you dont have enough connected sensors")
 	else: #this is the minimum number of sensors to create a usable model therefore it is a special case where all the sensors must detect heat
 		thresh_pass = 3
-		thresh_fail = 1
 		main = True
 	setup = False #changes the setup variable to false so it only runs once
 	main = True #makes it so the main runs
@@ -89,7 +87,6 @@ while setup:
 while main:
 	print("Resting...")
 	pass_flag = 0 #resets flags every loop
-	fail_flag = 0
 	sleep(wait_time)
 	print("Starting")
 	message = "Info"
@@ -98,8 +95,6 @@ while main:
     #put sensor state of master pi in sensor list
 	if(pir.motion_detected==True):
 		pass_flag +=  1 #increments the pass count if motion is seen on master
-	else:
-		fail_flag += 1 #increments the fail count if motion is not seen on master
 
     #listen for incoming connections
 	s.listen(total_sensors) #now listens for exactly the correct number of sensors 
@@ -114,15 +109,11 @@ while main:
 			
 			if receivedInfo == "True":
 				pass_flag += 1
-			else:
-				fail_flag +=1
+
 			c.close()
 			
 			if pass_flag >= thresh_pass:
 				take_pic = True
-#				break
-#			elif fail_flag >= thresh_fail:
-#				break
 
 		except socket.timeout:
 			total_sensors -=1 #this means a sensor has died
@@ -136,7 +127,7 @@ while main:
 	if(take_pic):
 		#Send MQTT message to slaves to take photo and start photo
 		date = strftime("%d_%m_%y_")
-		message = "Take Synced Photo " + str(photoNum) + date
+		message = "Take Synced Photo " + str(photoNum) + ' ' + date
 		
 		publish.single(MQTT_PATH,message,hostname=MQTT_SERVER)
 		ctpath = '/home/pi/cameraTrapPhotos/' + date +'set' + str(photoNum) + '/'
@@ -178,40 +169,3 @@ while main:
 	while delay: 
 		sleep(45) #Gives the sensors ample time to fully reset if they have just taken 10 pics in a row
 			#Long times at high could cause them to continue to falsely read high for longer i.e. cool down
-		
-		#this loop polls all the pis in order to check if their PIR signal has changed from high
-		#This logic is to stop pictures of the same animal to be taken over and over
-		#In order to track this we wait for the first time each sensor outputs a low signal and interpret that
-		#as the animal moving away. Once a threshold is met or a specified time has passed we exit the loop
-#		for j in range(30):
-#			delay_flag = 0
-#				message = "Delay"
-#				publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message get info about slave sensors
-#			
-#				if(pir.motion_detected==False): #enters this loop the first time the sensors reads false
-#					delay_flag +=1 #adds to the number of sensors that have stopped detecting heat
-#
-#				s.listen(total_sensors) #now listens for exactly the correct number of sensors 
-#				print("Socket is listening")
-#				for i in range(1,total_sensors)
-#					try:
-#						c,addr = s.accept() #accept connections from slave pis
-#						receivedInfo = str(c.recv(1024))
-			
-#						if receivedInfo == "True":
-#							delay_flag += 1
-#						c.close()
-#			
-#						if delay_flag >= thresh_pass: #uses same threshold as for taking picture to determine if animal has moved
-#							s.settimeout(10)
-#							delay = False
-#							break
-#					except socket.timeout:
-#						delay = True 
-#						total_sensors -=1
-#						break
-#				if delay_flag >= thresh_pass:
-#					delay = False
-#					break
-#				sleep(10) #only checks the cameras every 10 seconds
-#
