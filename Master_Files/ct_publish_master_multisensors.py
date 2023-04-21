@@ -23,7 +23,7 @@ delay_flag = 0
 reinitialize = 0
 
 while setup:
-	if initial_setup = True: #runs only one time
+	if initial_setup == True: #runs only one time
 		print("Started master multisensor photo sync program")
 		photoNum = 1
 		MQTT_SERVER = "localhost" #master Pi IP address
@@ -135,7 +135,7 @@ while main:
     #if ratio is above the threshold, start a photo session
 	if(take_pic):
 		#Send MQTT message to slaves to take photo and start photo
-		date = strftime("%d/%m/%y")
+		date = strftime("%d_%m_%y_")
 		message = "Take Synced Photo " + str(photoNum) + date
 		
 		publish.single(MQTT_PATH,message,hostname=MQTT_SERVER)
@@ -167,12 +167,12 @@ while main:
 		delay_flag +=1 
 #		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
 
-	if delay_flag = 10:
+	if delay_flag == 10:
 		delay = True
 		delay_flag = 0
 		
 	reinitialize +=1 #increment every loop
-	if reinitialize = 8600  #about once a day will reinitialize the list of sensors 
+	if reinitialize == 8600:  #about once a day will reinitialize the list of sensors 
 		setup = True
 		main = False
 	while delay: 
