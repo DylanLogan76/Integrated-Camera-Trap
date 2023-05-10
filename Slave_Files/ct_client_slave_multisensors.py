@@ -24,7 +24,7 @@ pir=MotionSensor(4) #use motion sensor
 camera = PiCamera() #use camera
 path = '/home/pi/cameraTrapPhotos/' #directory to store photos on
 IPAddr = commands.getoutput("hostname -I") #get Pi's own IP address
-cameraNum = IPAddr[-2:] #device number, sets itself equal to the last two numbers in the IP adress (change if over 100 cameras used)
+cameraNum = IPAddr[-2:len(IPAddr)-1] #device number, sets itself equal to the last two numbers in the IP adress (change if over 100 cameras used)
 access_rights = 0o777 #permissions for directory
 
 change = False
