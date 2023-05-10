@@ -78,7 +78,6 @@ while setup:
 		thresh_pass = 3
 		main = True
 	setup = False #changes the setup variable to false so it only runs once
-	main = True #makes it so the main runs
 	wait_time = 10 #Want to get many pics of the animal when it comes so wait time is just long enough for sensors to cool down on average
 	s.settimeout(10) #sets a new time for reading sensor outputs. shouldnt need to be this high
 	break #ends the loop
