@@ -1,0 +1,3 @@
+Download the appropriate folder from the link below and unzip it to a location on your computer. Use an app such as Balena Etcher to copy the folder to a MicroSD card. Follow the setup instructions in the manual for more details.
+
+https://drive.google.com/drive/folders/116NxgCEkzo3HyZKjI72km66763DjTaxj?usp=sharing
