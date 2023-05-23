@@ -23,3 +23,4 @@ Xiaoyang Pan <br />
 Minting Chen <br />
 
 Indepedant Study: Zalman Lipschitz
+                  Dylan Logan
