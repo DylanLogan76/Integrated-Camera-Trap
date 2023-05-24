@@ -116,7 +116,7 @@ while main:
 
 		except socket.timeout:
 			total_sensors -=1 #this means a sensor has died
-			reinitialize = 20950
+			reinitialize = 20950 #sets cameras so run for a short amount more time then reinitialize and rethreshold
 			break #break the loop so no pic is taken as a timeout means the animal is likely past
 
 	#list of all devices and their sensor readings  CAN ADD BACK IN FOR TESTING OR IF INTERESTED 
@@ -163,7 +163,7 @@ while main:
 		delay_flag = 0
 		
 	reinitialize +=1 #increment every loop
-	if reinitialize == 8600:  #about once a day will reinitialize the list of sensors 
+	if reinitialize == 21000:  #about once a day will reinitialize the list of sensors 
 		setup = True
 		main = False
 	while delay: 
