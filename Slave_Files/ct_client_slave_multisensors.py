@@ -12,6 +12,7 @@ from gpiozero import MotionSensor
 #Authors:
 #Anamitra Datta
 #Minting Chen
+#Dylan Logan
 
 #Slave client code for multiple sensor photo triggering
 #If message "Info" is received from master pi, send data about the sensor to master Pi
@@ -71,18 +72,7 @@ def on_message(client, userdata, msg):
 		else:
 			s.sendall("False")
 		s.close()
-		
-#	if(wordlist[0]=="Delay"): #Checks to see if the sensor is low for the first time since pic is taken
-#		s = socket.socket()
-#		port = 12345 #connect to master multisensor port
-#		s.connect((MQTT_SERVER,port))
-#		
-#		if(pir.motion_detected==False) and change==False:
-#			change = True
-#			s.sendall("True")
-#		else:
-#			s.sendall("False")
-#		s.close()
+	
 
 	if(wordlist[0]=="Take"): #take photo and send it to main pi
 		photoNum = int(wordlist[-2])
@@ -101,7 +91,6 @@ def on_message(client, userdata, msg):
         #set up camera and file parameters
 		photoName = 'set' + str(photoNum) + '_camera' + str(cameraNum) + '.jpg'
 		camera.resolution = (3240,2464)
-		camera.shutter_speed = 30000
 
         #take photo
 		camera.capture(path + photoName)
