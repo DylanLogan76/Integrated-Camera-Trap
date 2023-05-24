@@ -143,8 +143,8 @@ while main:
 		filename = 'set'+str(photoNum)+'_camera1.jpg'
 		camera.resolution=(3280,2464)
 #		camera.shutter_speed = 30000
-		camera.awb_mode('auto')
-		camera.exposure_mode('auto')
+#		camera.awb_mode('auto')
+#		camera.exposure_mode('auto')
 
 		#Take Photo
 		camera.capture(ctpath+filename)
