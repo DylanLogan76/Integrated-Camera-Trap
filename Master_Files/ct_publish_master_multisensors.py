@@ -54,7 +54,7 @@ while setup:
 	message = "Setup"
 	sensors_connected.append([str(IPAddr)])
 	publish.single(MQTT_PATH,message,hostname=MQTT_SERVER) #send message see which slave sensors are looking to connect
-	s.listen(10) #set socket to take a backlog of 10. increase number if there are more slaves to be connected
+	s.listen(4) #set socket to take a backlog of 10. increase number if there are more slaves to be connected
 	print("Socket is listening for setup")
 	
 	while True:
@@ -116,6 +116,7 @@ while main:
 
 		except socket.timeout:
 			total_sensors -=1 #this means a sensor has died
+			reinitialize = 20950
 			break #break the loop so no pic is taken as a timeout means the animal is likely past
 
 	#list of all devices and their sensor readings  CAN ADD BACK IN FOR TESTING OR IF INTERESTED 
@@ -142,9 +143,6 @@ while main:
         #set camera and file parameters
 		filename = 'set'+str(photoNum)+'_camera1.jpg'
 		camera.resolution=(3280,2464)
-#		camera.shutter_speed = 30000
-#		camera.awb_mode('auto')
-#		camera.exposure_mode('auto')
 
 		#Take Photo
 		camera.capture(ctpath+filename)
@@ -157,7 +155,8 @@ while main:
 #		delay = True #tracks that a picture has been taken and that the delay should begin
 		take_pic = False #stops the picture taking loop
 		delay_flag +=1 
-#		sleep(120) #does nothing for a guaranteed 2 minutes after taking a picture
+		sleep(6)
+
 
 	if delay_flag == 10:
 		delay = True
